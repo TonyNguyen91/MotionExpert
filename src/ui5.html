@@ -1,0 +1,154 @@
+<title>MrT Motion Gen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*STYLE*/
+</style>
+
+<div class="app">
+  <header>
+    <div class="brand"><h1 data-i="title">MrT Motion Gen</h1><span data-i="subtitle">Mô phỏng cơ cấu thanh phẳng cho đồ chơi</span></div>
+    <span class="ver">v1.0</span>
+    <div class="projbar" role="group" aria-label="Dự án">
+      <span class="pb-label" data-i="file">Dự án</span>
+      <div class="projname"><label for="projName" class="kbd" data-i="proj_name">Tên</label><input type="text" id="projName" value="co-cau-moi" maxlength="60"><span class="dirty" id="dirty" hidden title="*"></span></div>
+      <div class="pb-btns"><button class="btn" id="saveProj" data-i="save">Lưu dự án (.xcc)</button><label class="btn" for="loadProj" data-i="open">Mở dự án</label><input type="file" id="loadProj" accept=".xcc,.json" hidden><button class="btn" id="dxfBtn" data-i="dxf_btn">Xuất DXF (Onshape)</button><button class="btn danger" id="clearAll" data-i="clear">Xóa hết</button></div>
+      <span class="kbd pb-keys" title="Ctrl+S · Ctrl+O">Ctrl+S · Ctrl+O</span>
+    </div>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="undo" aria-label="Undo" title="Ctrl+Z"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3L2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H6"/></svg></button>
+    <button class="iconbtn" id="redo" aria-label="Redo" title="Ctrl+Y"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 3l3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H10"/></svg></button>
+    <div class="seg" role="group" aria-label="Language"><button id="lang-vi" aria-pressed="true">VI</button><button id="lang-en" aria-pressed="false">EN</button></div>
+  </header>
+
+  <nav class="toolbar" id="toolbar" aria-label="Tools"></nav>
+  <input type="file" id="bgFile" accept="image/*" hidden>
+
+  <div class="left">
+    <section class="sec"><h2 data-i="props">Thuộc tính</h2><div id="props"></div></section>
+    <section class="sec"><h2 data-i="analysis">Phân tích</h2><dl class="kv" id="analysis"></dl></section>
+    <section class="sec">
+      <h2 data-i="display">Hiển thị</h2>
+      <label class="toggle"><input type="checkbox" id="optDims" checked><span data-i="opt_dims">Hiện chiều dài khâu</span></label>
+      <label class="toggle"><input type="checkbox" id="optTrace" checked><span data-i="opt_trace">Hiện quỹ đạo</span></label>
+      <label class="toggle"><input type="checkbox" id="optSnap" checked><span data-i="opt_snap">Bắt điểm lưới 1 mm</span></label>
+      <label class="toggle"><input type="checkbox" id="optInfer" checked><span data-i="opt_infer">Gióng thẳng hàng với khớp khác</span></label>
+      <label class="toggle"><input type="checkbox" id="optSketch" checked><span data-i="opt_sketch">Hiện phác thảo</span></label>
+      <label class="toggle"><input type="checkbox" id="optGlyph" checked><span data-i="opt_glyph">Hiện ký hiệu ràng buộc</span></label>
+      <label class="toggle"><input type="checkbox" id="optColl" checked><span data-i="opt_coll">Kiểm tra va chạm</span></label>
+      <label class="toggle"><input type="checkbox" id="optCollstop"><span data-i="opt_collstop">Dừng mô phỏng khi va chạm</span></label>
+      <label class="toggle"><input type="checkbox" id="optPhys" checked><span data-i="opt_phys">Tương tác vật lý: part bị khâu đẩy</span></label>
+      <label class="toggle"><input type="checkbox" id="optIc"><span data-i="opt_ic">Hiện tâm quay tức thời</span></label>
+      <label class="toggle"><input type="checkbox" id="optMkLim" checked><span data-i="opt_mklim">Vạch vị trí biên trên thanh θ (xanh)</span></label>
+      <label class="toggle"><input type="checkbox" id="optMkDead" checked><span data-i="opt_mkdead">Vạch điểm chết trên thanh θ (cam)</span></label>
+      <label class="toggle"><input type="checkbox" id="optCtinfo" checked><span data-i="opt_ctinfo">Hiện lực F, nón ma sát và góc α ở chỗ tiếp xúc</span></label>
+      <div class="props"><label for="optMu" data-i="opt_mu">Hệ số ma sát μ</label><span class="unit span2" data-u=""><input type="number" id="optMu" min="0" max="1" step="0.05" value="0.2"></span><label for="optMuG" data-i="opt_mug">Ma sát rãnh trượt μr</label><span class="unit span2" data-u=""><input type="number" id="optMuG" min="0" max="1" step="0.05" value="0.2"></span></div>
+    </section>
+    <section class="sec" id="bgSec" hidden>
+      <h2 data-i="bg_title">Ảnh nền</h2>
+      <div class="slider-row"><label for="bgOp" data-i="bg_op">Độ đậm</label><input type="range" id="bgOp" min="0.05" max="1" step="0.05" value="0.5"><span class="kbd" id="bgOpOut">50%</span></div>
+      <div class="props"><label for="bgW" data-i="bg_w">Chiều rộng</label><span class="unit span2" data-u="mm"><input type="number" id="bgW" step="1"></span>
+        <label for="bgRot" data-i="bg_rot">Góc xoay</label><span class="unit span2" data-u="°"><input type="number" id="bgRot" step="1"></span></div>
+      <div class="bgbtns"><button class="btn" id="bgRm" data-i="bg_rm" title="−90°">⟳ −90°</button><button class="btn" id="bgRp" data-i="bg_rp" title="+90°">⟲ +90°</button><button class="btn" id="bgFx" data-i="bg_fx">⇋ Lật ngang</button><button class="btn" id="bgFy" data-i="bg_fy">⇵ Lật dọc</button><button class="btn" id="bgReset" data-i="bg_reset">Đặt lại</button></div>
+      <label class="toggle"><input type="checkbox" id="bgLock"><span data-i="bg_lock">Khóa ảnh (không kéo được)</span></label>
+      <label class="toggle"><input type="checkbox" id="bgShow" checked><span data-i="bg_show">Hiện ảnh</span></label>
+      <p class="muted" data-i="bg_note">Kéo ảnh để dời. Kéo ô vuông ở góc để đổi kích thước (Shift: giữ tâm), kéo nút tròn phía trên để xoay (Shift: bước 15°). Alt + lăn: tỉ lệ, Alt + Shift + lăn: xoay 5°. Khóa ảnh khi đã căn xong.</p>
+      <div class="btnrow"><button class="btn" id="bgReplace" data-i="bg_replace">Đổi ảnh</button><button class="btn danger" id="bgRemove" data-i="bg_remove">Bỏ ảnh</button></div>
+    </section>
+    <section class="sec">
+      <h2 data-i="constraints">Ràng buộc</h2>
+      <p class="muted" data-i="constraints_note">Khóa giữ nguyên chiều dài khâu hoặc vị trí gối khi kéo thả và chỉnh sửa.</p>
+      <div class="btnrow"><button class="btn" id="lockPivots" data-i="lock_pivots">Khóa mọi gối</button><button class="btn" id="lockDims" data-i="lock_dims">Khóa mọi khâu</button><button class="btn" id="unlockAll" data-i="unlock_all">Mở khóa tất cả</button></div>
+    </section>
+  </div>
+
+  <main class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="hint" id="hint"></div>
+    <div class="topts" id="topts" hidden></div>
+    <div class="viewbtns">
+      <button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button>
+      <button id="zfit" aria-label="Fit" title="Fit"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
+    </div>
+    <div class="scalebar" id="scalebar"><i></i><span></span></div>
+    <div class="coord" id="coord">x 0.0 · y 0.0 mm</div>
+    <div class="statusbox"><span class="status-chip ok" id="status">—</span></div>
+    <div class="toast" id="toast"></div>
+    <section class="tpanel" id="tpanel" aria-label="Trace data" hidden></section>
+    <div class="speedpop" id="speedPop" hidden>
+      <div class="slider-row"><label for="rpm" data-i="speed">Tốc độ</label><input type="range" id="rpm" min="1" max="120" step="1" value="20"><span class="kbd" id="rpmOut">20 rpm</span></div>
+    </div>
+    <div class="dock" id="dock">
+      <div class="dgroup">
+        <button class="dbtn play" id="play" aria-label="Play"><svg viewBox="0 0 18 18" fill="currentColor" id="playicon"><path d="M4 2l12 7-12 7z"/></svg></button>
+        <button class="dbtn" id="stop" aria-label="Stop" title="Stop"><svg viewBox="0 0 18 18" fill="currentColor"><rect x="4" y="4" width="10" height="10" rx="1.5"/></svg></button>
+        <button class="dbtn" id="tdBtn" aria-label="Trace data" aria-pressed="false" title="Thông số điểm vết / Trace data"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2v14h14"/><path d="M4.5 12l3.5-4 3 2.5L15.5 5"/></svg></button>
+        <button class="dbtn" id="speedBtn" aria-label="Speed" aria-pressed="false"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5h14M2 13h14"/><circle cx="6" cy="5" r="2" fill="var(--dock)"/><circle cx="12" cy="13" r="2" fill="var(--dock)"/></svg></button>
+      </div>
+      <div class="dgroup dmotor">
+        <svg class="ddial" id="ddial" viewBox="0 0 52 52" aria-hidden="true">
+          <circle cx="26" cy="26" r="20" fill="none" class="dd-base"/>
+          <path id="ddDom" fill="none" class="dd-dom"/>
+          <path id="ddLim" fill="none" class="dd-lim"/>
+          <line x1="26" y1="26" x2="48" y2="26" class="dd-zero"/>
+          <line id="ddNeedle" x1="26" y1="26" x2="44" y2="26" class="dd-needle"/>
+          <circle id="ddTip" cx="44" cy="26" r="3.2" class="dd-tip"/>
+          <circle cx="26" cy="26" r="3.5" class="dd-hub"/>
+        </svg>
+        <div class="dmain">
+          <div class="dtop">
+            <button class="mchip" id="mchip" title=""><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="3.6" cy="11.8" r="2"/><circle cx="12.4" cy="4.2" r="2"/><path d="M5.2 10.4l5.6-4.8"/></svg><span id="mchipTxt">—</span></button>
+            <span class="dtip" tabindex="0">?<span class="bub" data-i="dtip_chip"></span></span>
+            <span class="dlab" data-i="d_theta">Góc θ</span>
+            <span class="dread" id="thetaOut">0.0°</span>
+            <span class="ddir" id="dirOut">↺</span>
+            <span class="dtip" tabindex="0">?<span class="bub" data-i="dtip_theta"></span></span>
+            <span class="dsp"></span>
+            <span class="dsweep" id="limSweep"></span>
+            <span class="dtip r" tabindex="0">?<span class="bub" data-i="dtip_range"></span></span>
+          </div>
+          <div class="range" id="range" data-on="false">
+            <div class="track"></div><div class="fill" id="rfill"></div>
+            <div class="rticks" id="rticks"></div>
+            <span class="lbl" id="lblMin"></span><span class="lbl" id="lblMax"></span>
+            <div class="head" id="rhead"></div>
+            <div class="knob" id="kMin" tabindex="0" role="slider" aria-label="Min"></div>
+            <div class="knob" id="kMax" tabindex="0" role="slider" aria-label="Max"></div>
+          </div>
+        </div>
+        <div class="dnums">
+          <div class="drow"><label class="dnum"><span data-i="d_min">Đầu</span><input type="text" inputmode="decimal" id="limMin" autocomplete="off"></label><span class="dtip r" tabindex="0">?<span class="bub" data-i="dtip_num"></span></span></div>
+          <div class="drow"><label class="dnum"><span data-i="d_max">Cuối</span><input type="text" inputmode="decimal" id="limMax" autocomplete="off"></label></div>
+        </div>
+        <div class="dctl">
+          <div class="drow"><button class="dbtn dwide" id="reverse" aria-label="Reverse" aria-pressed="false" title=""><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h12M12 3l3 3-3 3M15 12H3M6 9l-3 3 3 3"/></svg><span data-i="d_rev">Đảo chiều</span></button><span class="dtip r" tabindex="0">?<span class="bub" data-i="dtip_ctl"></span></span></div>
+          <div class="drow"><label class="dlim"><button class="switch" id="limitSw" role="switch" aria-checked="false" aria-label="Limit"></button><span data-i="d_lim">Giới hạn</span></label></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right">
+    <div class="rhead"><h2 data-i="parts">Thành phần</h2><span data-i="parts_tip">chuột phải để tùy chỉnh</span></div>
+    <div class="plist" id="plist"></div>
+  </aside>
+</div>
+
+<div class="ctxmenu" id="ctx" role="menu" hidden></div>
+<div class="exmenu" id="exMenu" hidden><div class="exhead" data-i="presets">Cơ cấu mẫu</div><div class="presets" id="presets"></div></div>
+<div class="popover" id="pop" role="dialog" aria-modal="false" hidden>
+  <div class="ph" id="popHead"><h3 id="popTitle"></h3><button class="x" id="popClose" aria-label="Close">×</button></div>
+  <div class="pb" id="popBody"></div>
+</div>
+
+<script>
+/*CORE*/
+</script>
+<script>
+/*SOLVER*/
+</script>
+<script>
+/*SKETCH*/
+</script>
+<script>
+/*APP*/
+</script>

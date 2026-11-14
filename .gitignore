@@ -1,0 +1,9 @@
+# bản sao trùng của MrT-Motion-Gen.html (chỉ để giữ lối tắt cũ trên máy) — không đưa lên repo
+xuong-co-cau.html
+# repo clone lồng bên trong thư mục làm việc trên máy (D:\xuong-co-cau\MotionExpert)
+MotionExpert/
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+Thumbs.db

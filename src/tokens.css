@@ -1,0 +1,28 @@
+
+/* Layout: bàn làm việc kỹ thuật — thanh công cụ trái, giấy kẻ ly ở giữa, bảng thuộc tính phải, thanh điều khiển chuyển động dưới */
+:root {
+  --paper: #eef1f3; --sheet: #f8f9fa; --ink: #1d2a33; --ink-2: #51606b; --line: #cdd5db;
+  --grid-minor: #e1e6ea; --grid-major: #c9d2d9;
+  --accent: #e2611f; --accent-ink: #ffffff;
+  --l1: #2f6f9f; --l2: #3c8a6e; --l3: #8a5aa8; --l4: #b07d1c; --l5: #b3485d; --l6: #4a7d8c;
+  --ok: #2e8a55; --warn: #c27b12; --bad: #c23b3b;
+  --panel: #ffffff; --hover: #e7ecef; --trace: #e2611f;
+  --f-display: "Saira Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #151b20; --sheet: #1a2127; --ink: #e3e9ed; --ink-2: #93a2ad; --line: #2c3740;
+  --grid-minor: #1f272e; --grid-major: #2a343c;
+  --accent: #f07a3a; --accent-ink: #1a1009;
+  --l1: #6aa8d6; --l2: #6cc4a2; --l3: #b896d4; --l4: #d9a84a; --l5: #e07a8d; --l6: #7fb4c3;
+  --ok: #5cc287; --warn: #e4a647; --bad: #ef6b6b;
+  --panel: #1d252c; --hover: #26313a; --trace: #f07a3a; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #151b20; --sheet: #1a2127; --ink: #e3e9ed; --ink-2: #93a2ad; --line: #2c3740;
+  --grid-minor: #1f272e; --grid-major: #2a343c;
+  --accent: #f07a3a; --accent-ink: #1a1009;
+  --l1: #6aa8d6; --l2: #6cc4a2; --l3: #b896d4; --l4: #d9a84a; --l5: #e07a8d; --l6: #7fb4c3;
+  --ok: #5cc287; --warn: #e4a647; --bad: #ef6b6b;
+  --panel: #1d252c; --hover: #26313a; --trace: #f07a3a; color-scheme: dark; }
+
