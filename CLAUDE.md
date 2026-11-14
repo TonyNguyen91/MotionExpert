@@ -18,6 +18,7 @@ Sau khi sửa, chạy `node --check` trên phần script, và kiểm thử bằn
   4. `git push origin main` — không hỏi lại người dùng, đây là yêu cầu thường trực. Push lỗi thì báo rõ, không bỏ qua.
   5. Nếu phiên có liên kết máy tính: ghi các file đã đổi (src/*, CLAUDE.md, docs/*, MrT-Motion-Gen.html, xuong-co-cau.html) về `D:\xuong-co-cau` để bản trên máy luôn khớp repo.
 - Trước khi sửa: nếu máy người dùng có file mới hơn repo (người dùng/Claude Code sửa trực tiếp ở D:), lấy bản trên máy, commit riêng "Đồng bộ từ máy" trước rồi mới làm việc mới. Phiên cloud clone nông (`--depth 1`), push dùng `git -c push.negotiate=true push origin main`.
+- GitHub Pages: https://tonynguyen91.github.io/MotionExpert/ phục vụ `index.html` ở gốc repo (build.py xuất cùng nội dung với MrT-Motion-Gen.html; có `.nojekyll`). Luôn commit cả index.html sau khi build, nếu không link Pages chạy bản cũ.
 - `MrT-Motion-Gen.html` (bản build) được commit cùng mã nguồn để người dùng tải về chạy ngay; luôn build lại trước khi commit để hai thứ khớp nhau.
 - Repo public: không commit dữ liệu riêng của người dùng (email, file .xcc của công ty, ảnh nền dự án thật).
 

@@ -11,6 +11,7 @@ Cập nhật: 2026-11-14. Đọc file này trước, sau đó đọc [`CLAUDE.md
 ## Nơi để mã
 | Nơi | Vai trò |
 |---|---|
+| GitHub Pages https://tonynguyen91.github.io/MotionExpert/ | Bản chạy trực tuyến = `index.html` ở gốc repo (build.py tự xuất). |
 | GitHub `TonyNguyen91/MotionExpert`, nhánh `main` (public) | Nguồn chuẩn. **Mỗi lần cập nhật: build → kiểm tra → commit → `git push origin main`** (xem mục Git trong CLAUDE.md). |
 | `D:\xuong-co-cau` trên máy Windows 11 của người dùng | Thư mục người dùng mở app hằng ngày (`MrT-Motion-Gen.html`). Không phải repo git. Phiên có liên kết máy thì ghi file đã đổi về đây sau mỗi lần push. Người dùng cũng có thể chạy Claude Code (PowerShell) trực tiếp trong thư mục này. |
 | `D:\xuong-co-cau\MotionExpert\` | Bản clone riêng của người dùng, đã `.gitignore`, đừng đụng tới. |
@@ -38,5 +39,6 @@ App đầy đủ: khâu/tấm/xi lanh/rãnh/motor, phác thảo kiểu Onshape, 
 - `tests/physics/REPORT.md`: mới kiểm chứng four-bar; chưa kiểm slider-crank, 6 khâu, va chạm, tự hãm, round-trip `.xcc`.
 
 ## Nhật ký thay đổi
+- 2026-11-14 — GitHub Pages mở thẳng app: build.py xuất thêm index.html, thêm .nojekyll.
 - 2026-11-14 — Đưa toàn bộ dự án lên GitHub (commit đầu), thêm README, .gitignore, quy tắc Git trong CLAUDE.md, tài liệu bàn giao này.
 - 2026-10-31 — Thanh motor mới + sửa núm dính chuột + tùy chọn ẩn vạch biên/điểm chết (xem trên).

@@ -3,7 +3,9 @@
 Phần mềm mô phỏng và tổng hợp **cơ cấu thanh phẳng** cho thiết kế chuyển động đồ chơi (tương tự motiongen.io). Giao diện song ngữ **Tiếng Việt / English**.
 
 ## Chạy
-Tải file [`MrT-Motion-Gen.html`](MrT-Motion-Gen.html) và mở bằng Edge/Chrome. Không cần cài đặt, chạy hoàn toàn offline (phông chữ nhúng sẵn, không thư viện/CDN ngoài, không gửi dữ liệu đi, không dùng localStorage/cookie).
+**Mở trực tuyến:** https://tonynguyen91.github.io/MotionExpert/
+
+Hoặc tải file [`MrT-Motion-Gen.html`](MrT-Motion-Gen.html) và mở bằng Edge/Chrome. Không cần cài đặt, chạy hoàn toàn offline (phông chữ nhúng sẵn, không thư viện/CDN ngoài, không gửi dữ liệu đi, không dùng localStorage/cookie).
 
 ## Tính năng chính
 - Khâu, tấm, xi lanh, rãnh, motor quay / tịnh tiến, giới hạn góc, vị trí đã lưu
@@ -16,7 +18,7 @@ Tải file [`MrT-Motion-Gen.html`](MrT-Motion-Gen.html) và mở bằng Edge/Chr
 
 ## Phát triển
 ```
-python build.py        # ghép src/* → MrT-Motion-Gen.html (+ bản sao xuong-co-cau.html, bị .gitignore)
+python build.py        # ghép src/* → MrT-Motion-Gen.html + index.html (GitHub Pages) + xuong-co-cau.html (bị .gitignore)
 ```
 - Mã nguồn: `src/` (thứ tự ghép module trong `build.py`)
 - Kiến trúc, quy ước và quy trình làm việc: [`CLAUDE.md`](CLAUDE.md)

@@ -9,6 +9,6 @@ sk = rd('sketch_core.js').replace("if (typeof module !== 'undefined') module.exp
 out = ui.replace('/*STYLE*/', css).replace('/*CORE*/', rd('core.js')).replace('/*SOLVER*/', rd('solver4.js')).replace('/*SKETCH*/', sk).replace('/*APP*/', app)
 out = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>' + out + '</body></html>'
 root = os.path.dirname(d[:-1])
-for name in ('MrT-Motion-Gen.html', 'xuong-co-cau.html'):  # tên mới + giữ tên cũ cho lối tắt đã có
+for name in ('MrT-Motion-Gen.html', 'xuong-co-cau.html', 'index.html'):  # tên mới + tên cũ cho lối tắt + index.html cho GitHub Pages
     open(os.path.join(root, name), 'w', encoding='utf-8').write(out)
-print('OK -> MrT-Motion-Gen.html (+ xuong-co-cau.html)')
+print('OK -> MrT-Motion-Gen.html (+ xuong-co-cau.html, index.html)')
