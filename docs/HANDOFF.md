@@ -39,6 +39,7 @@ App đầy đủ: khâu/tấm/xi lanh/rãnh/motor, phác thảo kiểu Onshape, 
 - `tests/physics/REPORT.md`: mới kiểm chứng four-bar; chưa kiểm slider-crank, 6 khâu, va chạm, tự hãm, round-trip `.xcc`.
 
 ## Nhật ký thay đổi
+- 2026-11-14 — Thêm biểu tượng app (favicon) để ô truy cập nhanh Chrome không còn hiện chữ "T".
 - 2026-11-14 — GitHub Pages mở thẳng app: build.py xuất thêm index.html, thêm .nojekyll.
 - 2026-11-14 — Đưa toàn bộ dự án lên GitHub (commit đầu), thêm README, .gitignore, quy tắc Git trong CLAUDE.md, tài liệu bàn giao này.
 - 2026-10-31 — Thanh motor mới + sửa núm dính chuột + tùy chọn ẩn vạch biên/điểm chết (xem trên).

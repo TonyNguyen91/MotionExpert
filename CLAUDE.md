@@ -5,6 +5,7 @@ Mục tiêu cuối: đóng gói thành ứng dụng Windows 11 (.exe), ví dụ 
 
 ## Build
 `python build.py` → ghép `src/*` thành một file `MrT-Motion-Gen.html` (và bản sao `xuong-co-cau.html` cho lối tắt cũ), mở trực tiếp bằng trình duyệt. Chạy hoàn toàn offline: phông nhúng trong `src/fonts.css` (OFL), không có thư viện/CDN ngoài, không gửi dữ liệu đi. KHÔNG dùng localStorage/cookie/IndexedDB (ngôn ngữ chỉ nhớ trong phiên). Đã kiểm 2026-10-25: Edge ngắt mạng + chặn mọi URL không phải file:/data:/blob: → chỉ đúng 1 yêu cầu (chính file html), không lỗi; đọc file chỉ qua hộp chọn/kéo thả, ghi file chỉ qua tải xuống. Giữ nguyên nguyên tắc này khi thêm tính năng (người dùng mang lên công ty, không được vi phạm chính sách).
+Biểu tượng app (favicon, ô truy cập nhanh Chrome): `src/icon.svg` (cơ cấu 4 khâu cam trên nền #1d2230) + `src/icon192.png` (render từ SVG bằng Playwright khi đổi hình) — build.py nhúng thành data URI trong <head>.
 Thứ tự module app: xem danh sách trong build.py (sk_onshape.js nằm sau app5_ui_rest, trước app5_main).
 Sau khi sửa, chạy `node --check` trên phần script, và kiểm thử bằng Playwright nếu có.
 
