@@ -347,7 +347,7 @@ function wedgeEval(g, dB, dK) {
   const out = { margin, aEff, aLim, jam: margin <= 0, sig, sK };
   if (gK) { const h = drive > 1e-9 ? pr.M / drive : Infinity; out.dr = { L: gK.L, h, Lmin: 2 * mg * h, gov: pr.gov, out: gK.out, g: g.K.name }; } // h: cánh tay đòn tương đương so với lực dọc rãnh
   // hiệu suất & hệ số lực khi B là khâu bị motor tịnh tiến đẩy theo phương e (rãnh của B cũng có ma sát μr)
-  const mo = S.model.motors.find(q => q.mate && (S.model.mates.find(x => x.id === q.mate) || {}).a === g.B.id), mt = mo && S.model.mates.find(x => x.id === mo.mate);
+  const mo = S.model.motors.find(q => q.mate && ((S.model.mates.find(x => x.id === q.mate) || {}).type === 'sld') && S.model.mates.find(x => x.id === q.mate).a === g.B.id), mt = mo && S.model.mates.find(x => x.id === mo.mate); // chỉ motor tịnh tiến (mate Trượt có cạnh ea/eb); motor mate Xoay (cam quay) trước đây làm lỗi JS → vòng mô phỏng dừng
   if (mt && margin > 0) {
     const el = Math.hypot(mt.eb.x - mt.ea.x, mt.eb.y - mt.ea.y) || 1; let e = { x: (mt.eb.x - mt.ea.x) / el, y: (mt.eb.y - mt.ea.y) / el };
     const fB = mt.b && getL(mt.b) && frameOf(getL(mt.b), S.pos); if (fB) e = { x: e.x * fB.ex - e.y * fB.ey, y: e.x * fB.ey + e.y * fB.ex };
@@ -518,6 +518,17 @@ function activeContacts(P) {
   }
   return out;
 }
+function movesWithoutContact(model, Q, P, th, g) {
+  // giải lại bước Q → θ không có tiếp xúc K|B (vẫn có trọng lực/lò xo): K tự đi theo phương lực f ít nhất 80% quãng nó đi trong P → B không đẩy K
+  const keys = [g.K.id + '|' + g.B.id, g.B.id + '|' + g.K.id], cons = S.cons.filter(c => !(c.t === 'ct' && keys.includes(c.pair)));
+  const vars = movingVars(model), ph = physSoft(model, Q, 1);
+  const r = solveLM(cons, Q, { vars, theta: th, soft: vars.map(id => ({ id, x: Q[id].x, y: Q[id].y, w: 1e-4 })).concat(ph), tol: 1e-4, ...(ph.length ? { relStop: 1e-3, maxIter: 25 } : {}) });
+  if (!(r.ok || r.hard < 1e-2)) return false;
+  const fQ = frameOf(g.K, Q), fP = frameOf(g.K, P), fR = frameOf(g.K, r.pos); if (!fQ || !fP || !fR) return false;
+  const loc = toLocal(fP, g.C), CQ = toWorld(fQ, loc), CR = toWorld(fR, loc);
+  const kP = (g.C.x - CQ.x) * g.f.x + (g.C.y - CQ.y) * g.f.y, kR = (CR.x - CQ.x) * g.f.x + (CR.y - CQ.y) * g.f.y;
+  return kP > 1e-7 && kR >= 0.8 * kP;
+}
 function frictionJam(model, Q, P, th) {
   if (!physOn() || !(mu() > 0) || !S.cons || S.ignoreJam) return false;
   const sinPhi = Math.sin(Math.atan(mu()));
@@ -525,19 +536,36 @@ function frictionJam(model, Q, P, th) {
     if (g.alpha == null || isDrivenLink(g.K)) continue;
     // B có đang đẩy vào K không: chuyển vị của điểm vật liệu C (gắn với B) trong bước này theo phương f
     const fBQ = frameOf(g.B, Q); if (!fBQ) continue; const CQ = toWorld(fBQ, toLocal(g.fB, g.C)), push = (g.C.x - CQ.x) * g.f.x + (g.C.y - CQ.y) * g.f.y;
-    if (push < 1e-5) continue;
+    if (push < 2e-4) continue; // dưới mức sai số bộ giải (tol 1e-4 mm) → không coi là đẩy
     // part bị đẩy có THỰC SỰ bị dời theo phương lực trong bước này? (điểm vật liệu C gắn với K) — nếu không (hai mép chỉ trượt qua nhau,
     // vd. mũi nêm lướt qua góc), tiếp xúc không truyền lực → không thể tự hãm
     const fKQ = frameOf(g.K, Q), fKP = frameOf(g.K, P); if (!fKQ || !fKP) continue;
-    const CK = toWorld(fKQ, toLocal(fKP, g.C)), kpush = (g.C.x - CK.x) * g.f.x + (g.C.y - CK.y) * g.f.y;
+    const CK = toWorld(fKQ, toLocal(fKP, g.C)); let dKv = { x: g.C.x - CK.x, y: g.C.y - CK.y };
+    // chỉ lấy phần chuyển vị K ĐƯỢC PHÉP có (dọc rãnh trượt / tiếp tuyến quanh chốt): sai số ngang ~0.01 mm của bộ giải từng làm part
+    // đang rơi khỏi cam bị coi là "bị đẩy" → báo kẹt nêm với α 68°
+    if (g.slide) { const u = dKv.x * g.slide.x + dKv.y * g.slide.y; dKv = { x: u * g.slide.x, y: u * g.slide.y }; }
+    else if (g.E) { const rx = g.C.x - g.E.x, ry = g.C.y - g.E.y, rl = Math.hypot(rx, ry) || 1, tx = -ry / rl, ty = rx / rl, u = dKv.x * tx + dKv.y * ty; dKv = { x: u * tx, y: u * ty }; }
+    const kpush = dKv.x * g.f.x + dKv.y * g.f.y;
     if (kpush < 0.5 * push) continue;
     let jam = Math.sin(g.alpha * D2R) < sinPhi, extra = {};
+    if (!g.slide && g.E) {
+      // part quay quanh chốt E: ma sát chỉ cản theo MỘT chiều trượt. Lực lên K (trên 1 đơn vị N): w = f + μ·σ·t, σ = chiều trượt của B so với K;
+      // kẹt khi mômen của w quanh E không cùng chiều quay sω mà K buộc phải quay. Chiều kia ma sát còn giúp K quay → không kẹt
+      // (trước đây α < φ là kẹt ở cả hai chiều → đĩa lệch tâm bị quét qua kẹt cả khi đảo chiều motor)
+      const r = { x: g.C.x - g.E.x, y: g.C.y - g.E.y }, dK = dKv, dB = { x: g.C.x - CQ.x, y: g.C.y - CQ.y }, t = { x: -g.f.y, y: g.f.x };
+      const sw = Math.sign(r.x * dK.y - r.y * dK.x), s = (dB.x - dK.x) * t.x + (dB.y - dK.y) * t.y, sig = Math.abs(s) > 1e-7 ? Math.sign(s) : 0;
+      const margin = sw * ((r.x * g.f.y - r.y * g.f.x) + mu() * sig * (r.x * g.f.x + r.y * g.f.y));
+      jam = jam && margin <= 0; (S.pinLast = S.pinLast || {})[g.K.id + '|' + g.B.id] = jam;
+    }
     if (g.slide) {
-      const fBQ2 = frameOf(g.B, Q), CB = toWorld(fBQ2, toLocal(g.fB, g.C)), w = wedgeEval(g, { x: g.C.x - CB.x, y: g.C.y - CB.y }, { x: g.C.x - CK.x, y: g.C.y - CK.y });
+      const fBQ2 = frameOf(g.B, Q), CB = toWorld(fBQ2, toLocal(g.fB, g.C)), w = wedgeEval(g, { x: g.C.x - CB.x, y: g.C.y - CB.y }, dKv);
       // chỉ tự hãm khi tiếp xúc MẶT (điểm chạm nằm trên cạnh phác thảo thật); đỉnh chạm đỉnh (mũi nêm lướt qua góc) chỉ tức thời
       S.wedgeLast = { key: g.K.id + '|' + g.B.id, sig: w.sig, sK: w.sK }; jam = (w.jam || !!w.mjam) && !!g.f.exact; extra = { aLim: w.aLim, wedge: true };
       if (w.mjam) extra.drawer = w.mdr; else if (w.jam && w.dr && (w.dr.gov || w.dr.out)) extra.drawer = w.dr; // mômen lệch tâm quyết định → kẹt ngăn kéo
     }
+    // K có tự chuyển động không cần B đẩy (bị cơ cấu dẫn qua khớp/thanh truyền, rãnh, mate…)? Giải lại bước không có tiếp xúc K|B:
+    // K vẫn tới đúng tư thế P → B chỉ bám theo K (vd. cần gạt rơi theo trọng lực lên part đang hạ xuống), không phải đẩy → không thể tự hãm
+    if (jam && movesWithoutContact(model, Q, P, th, g)) { if (S.pinLast) S.pinLast[g.K.id + '|' + g.B.id] = false; continue; }
     if (jam) {
       const info = { k: g.K.name, b: g.B.name, alpha: g.alpha, phi: extra.wedge ? extra.aLim : Math.atan(mu()) * R2D, th: th * R2D, pivot: g.pivot, pos: P, rad: th, C: g.C, wedge: !!extra.wedge, drawer: extra.drawer };
       S.jamInfo = info; if (S.jamLog) S.jamLog.push(info); return true;
@@ -556,7 +584,7 @@ function drawContactInfo() {
   for (const g of ctCache.list) {
     const Cs = w2s(g.C), dir = Math.atan2(-g.f.y, g.f.x); // góc trên màn hình (trục y lật)
     let wd = null; if (g.slide) { const L = S.wedgeLast && S.wedgeLast.key === g.K.id + '|' + g.B.id ? S.wedgeLast : null; wd = wedgeEval(g, L && { x: 0, y: 0, _s: 1 } && null, null); if (L) { const n = g.f, t = { x: -n.y, y: n.x }; wd = wedgeEval(g, { x: t.x * L.sig * 1e-3 + g.slide.x * L.sK * 1e-3, y: t.y * L.sig * 1e-3 + g.slide.y * L.sK * 1e-3 }, { x: g.slide.x * L.sK * 1e-3, y: g.slide.y * L.sK * 1e-3 }); } }
-    const jam = wd ? wd.jam || !!wd.mjam : g.alpha != null && g.alpha * D2R < phi, col = g.alpha == null ? colors.accent : jam ? colors.bad : colors.ok;
+    const pl = S.pinLast && S.pinLast[g.K.id + '|' + g.B.id], jam = wd ? wd.jam || !!wd.mjam : g.alpha != null && g.alpha * D2R < phi && pl !== false, col = g.alpha == null ? colors.accent : jam ? colors.bad : colors.ok;
     const Es = g.E && w2s(g.E), R = Es ? Math.min(Math.hypot(Es.x - Cs.x, Es.y - Cs.y) * 1.05, 260) : 90;
     // nón ma sát quanh phương lực
     if (phi > 0) { c.fillStyle = col; c.globalAlpha = .13; c.beginPath(); c.moveTo(Cs.x, Cs.y); c.arc(Cs.x, Cs.y, R, dir - phi, dir + phi); c.closePath(); c.fill(); c.globalAlpha = .8; c.strokeStyle = col; c.lineWidth = 1.2; c.setLineDash([5, 4]); c.stroke(); c.setLineDash([]); c.globalAlpha = 1; }
@@ -576,7 +604,7 @@ function drawContactInfo() {
     c.beginPath(); c.moveTo(Cs.x, Cs.y); c.lineTo(Cs.x - ux * 11 - uy * 6, Cs.y - uy * 11 + ux * 6); c.lineTo(Cs.x - ux * 11 + uy * 6, Cs.y - uy * 11 - ux * 6); c.closePath(); c.fill();
     c.fillStyle = colors.ink; c.beginPath(); c.arc(Cs.x, Cs.y, 3.5, 0, TAU); c.fill();
     // nhãn
-    const txt = wd ? `α ${g.alpha.toFixed(Math.abs(g.alpha - wd.aLim) < 0.5 ? 2 : 1)}° ${jam ? '≤' : '>'} φ+φr ${wd.aLim.toFixed(Math.abs(g.alpha - wd.aLim) < 0.5 ? 2 : 1)}°${jam ? ' · ' + T('ct_jam') : wd.eta != null ? ' · η ' + Math.round(wd.eta * 100) + '%' : ''}${[wd.dr, wd.mdr].filter(Boolean).map(r => ` · ${r.g}: Lđ ${r.L.toFixed(1)} ${r.L <= r.Lmin ? '≤' : '>'} 2μr·h ${isFinite(r.Lmin) ? r.Lmin.toFixed(1) : '∞'}`).join('')}` : g.alpha != null ? `α ${g.alpha.toFixed(1)}° ${jam ? '<' : '>'} φ ${(phi * R2D).toFixed(1)}°${jam ? ' · ' + T('ct_jam') : ''}` : `F ⟂ · φ ${(phi * R2D).toFixed(1)}°`;
+    const txt = wd ? `α ${g.alpha.toFixed(Math.abs(g.alpha - wd.aLim) < 0.5 ? 2 : 1)}° ${jam ? '≤' : '>'} φ+φr ${wd.aLim.toFixed(Math.abs(g.alpha - wd.aLim) < 0.5 ? 2 : 1)}°${jam ? ' · ' + T('ct_jam') : wd.eta != null ? ' · η ' + Math.round(wd.eta * 100) + '%' : ''}${[wd.dr, wd.mdr].filter(Boolean).map(r => ` · ${r.g}: Lđ ${r.L.toFixed(1)} ${r.L <= r.Lmin ? '≤' : '>'} 2μr·h ${isFinite(r.Lmin) ? r.Lmin.toFixed(1) : '∞'}`).join('')}` : g.alpha != null ? `α ${g.alpha.toFixed(1)}° ${g.alpha * D2R < phi ? '<' : '>'} φ ${(phi * R2D).toFixed(1)}°${jam ? ' · ' + T('ct_jam') : g.alpha * D2R < phi ? ' · ' + T('ct_fhelp') : ''}` : `F ⟂ · φ ${(phi * R2D).toFixed(1)}°`;
     c.font = '600 11.5px ' + bodyFont(); const tw = c.measureText(txt).width, lx = tx - tw / 2 - 6, ly = ty - Math.sign(uy || 1) * 14 - 10;
     c.fillStyle = col; c.beginPath(); c.roundRect ? c.roundRect(lx, ly, tw + 12, 20, 4) : c.rect(lx, ly, tw + 12, 20); c.fill();
     c.fillStyle = colors.panel; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, lx + 6, ly + 10);

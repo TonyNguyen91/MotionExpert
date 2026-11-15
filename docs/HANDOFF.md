@@ -39,6 +39,7 @@ App đầy đủ: khâu/tấm/xi lanh/rãnh/motor, phác thảo kiểu Onshape, 
 - `tests/physics/REPORT.md`: mới kiểm chứng four-bar; chưa kiểm slider-crank, 6 khâu, va chạm, tự hãm, round-trip `.xcc`.
 
 ## Nhật ký thay đổi
+- 2026-11-15 — Audit kẹt vô lý (frictionJam/wedgeEval): (1) motor mate Xoay (cam là part quay) đẩy part trượt làm lỗi JS trong wedgeEval → vòng mô phỏng dừng hẳn; (2) part do cơ cấu dẫn (khớp/thanh truyền) bị coi là "bị đẩy" khi vật khác bám theo nó → kẹt chết ở cả hai chiều; nay giải lại bước không có tiếp xúc K|B (movesWithoutContact) để biết B có thật sự đẩy K; (3) sai số ngang ~0.01 mm của bộ giải làm part đang rơi khỏi cam bị báo kẹt nêm (α 68°) → chuyển vị K chiếu lên phương được phép (dọc rãnh / tiếp tuyến quanh chốt), ngưỡng đẩy 2e-4 mm; (4) part có chốt xét chiều trượt thật: w = f + μσt, kẹt khi mômen ngược chiều quay (trước: α < φ là kẹt bất kể chiều) — nhãn hiện "ma sát thuận chiều quay" khi α < φ mà không kẹt.
 - 2026-11-14 — Thêm biểu tượng app (favicon) để ô truy cập nhanh Chrome không còn hiện chữ "T".
 - 2026-11-14 — GitHub Pages mở thẳng app: build.py xuất thêm index.html, thêm .nojekyll.
 - 2026-11-14 — Đưa toàn bộ dự án lên GitHub (commit đầu), thêm README, .gitignore, quy tắc Git trong CLAUDE.md, tài liệu bàn giao này.
